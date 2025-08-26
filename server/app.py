@@ -35,7 +35,6 @@ class Signup(Resource):
             bio=bio
         )
 
-        # the setter will encrypt this
         user.password_hash = password
 
         try:
@@ -81,7 +80,7 @@ class Login(Resource):
 
 class Logout(Resource):
     def delete(self):
-        if session('user_id'):
+        if session.get('user_id'):
             session.clear() 
             return {}, 204
 

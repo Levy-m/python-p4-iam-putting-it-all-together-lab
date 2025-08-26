@@ -60,16 +60,16 @@ class Recipe(db.Model, SerializerMixin):
     def __repr__(self):
         return f"Recipe {self.title}, ID {self.id}"
     
-    # @validates('title')
-    # def validate_title(self, key, title):
-    #     if not title:
-    #         raise ValueError("Title is required")
-    #     return title
+    @validates('title')
+    def validate_title(self, key, title):
+        if not title:
+            raise ValueError("Title is required")
+        return title
 
-    # @validates('instructions')
-    # def validate_instructions(self, key, instructions):
-    #     if not instructions:
-    #         raise ValueError("Instructions are required")
-    #     if len(instructions) < 50:
-    #         raise ValueError("Instructions must be at least 50 characters long")
-    #     return instructions
+    @validates('instructions')
+    def validate_instructions(self, key, instructions):
+        if not instructions:
+            raise ValueError("Instructions are required")
+        if len(instructions) < 50:
+            raise ValueError("Instructions must be at least 50 characters long")
+        return instructions
