@@ -54,7 +54,7 @@ class Signup(Resource):
 class CheckSession(Resource):
     def get(self):
         
-        user_id = session.get['user_id']
+        user_id = session['user_id']
         if user_id:
             user = User.query.filter(User.id == user_id).first()
             return user.to_dict(), 200
@@ -81,7 +81,7 @@ class Login(Resource):
 
 class Logout(Resource):
     def delete(self):
-        if session.get('user_id'):
+        if session('user_id'):
             session.clear() 
             return {}, 204
 
