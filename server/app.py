@@ -54,12 +54,12 @@ class Signup(Resource):
 class CheckSession(Resource):
     def get(self):
         
-        user_id = session['user_id']
+        user_id = session.get['user_id']
         if user_id:
             user = User.query.filter(User.id == user_id).first()
             return user.to_dict(), 200
         
-        return {}, 401
+        return {'error': '401 Unauthorized'}, 401 
 
 class Login(Resource):
     def post(self):
@@ -74,17 +74,18 @@ class Login(Resource):
         if user:
             if user.authenticate(password):
 
-                session.get['user_id'] = user.id
+                session['user_id'] = user.id
                 return user.to_dict(), 200
 
         return {'error': '401 Unauthorized'}, 401
 
 class Logout(Resource):
     def delete(self):
+        if session.get('user_id'):
+            session.clear() 
+            return {}, 204
 
-        session['user_id'] = None
-        
-        return {}, 204
+        return {'error': '401 Unauthorized'}, 401
 
 class RecipeIndex(Resource):
     def get(self):
