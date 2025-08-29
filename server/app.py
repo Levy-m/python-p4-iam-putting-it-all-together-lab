@@ -15,15 +15,13 @@ class Signup(Resource):
         request_json = request.get_json()
 
         try:
-            user= User(
-            username = request_json.get('username'),
-            image_url = request_json.get('image_url'),
-            bio = request_json.get('bio')
-            ) 
-
+            user = User(
+                username=request_json.get('username'),
+                image_url=request_json.get('image_url'),
+                bio=request_json.get('bio')
+            )
 
             user.password_hash = request_json.get('password')
-
 
             db.session.add(user)
             db.session.commit()
@@ -33,7 +31,9 @@ class Signup(Resource):
             return make_response(user.to_dict()), 201
 
         except (IntegrityError, ValueError) as err:
+            db.session.rollback()
             return {'errors': [str(err)]}, 422
+
 
 class CheckSession(Resource):
     def get(self):
@@ -51,7 +51,7 @@ class Login(Resource):
         user = User.query.filter(User.username ==request_json.get('username')).first()
 
         if user:
-            if user and user.authenticate(request_json.get('password')):
+            if user and user.authenticate(request_json.get['password']):
 
                 session['user_id'] = user.id
                 return make_response(user.to_dict()), 200
@@ -72,10 +72,9 @@ class RecipeIndex(Resource):
         if not user_id:
             return {'errors': ['Unauthorized']}, 401
 
-        recipes = Recipe.query.all()
+        recipes = Recipe.query.filter_by(user_id=user_id).all()
         return [recipe.to_dict() for recipe in recipes], 200
 
-        
     def post(self):
         user_id = session.get('user_id')
         if not user_id:
@@ -96,7 +95,9 @@ class RecipeIndex(Resource):
             db.session.commit()
             return make_response(recipe.to_dict(), 201)
         except (IntegrityError, ValueError) as err:
+            db.session.rollback()
             return {'errors': [str(err)]}, 422
+
         
 
 api.add_resource(Signup, '/signup', endpoint='signup')
