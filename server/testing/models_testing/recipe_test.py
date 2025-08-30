@@ -5,7 +5,7 @@ from app import app
 from models import db, Recipe
 
 class TestRecipe:
-    '''Recipe in models.py'''
+    '''User in models.py'''
 
     def test_has_attributes(self):
         '''has attributes title, instructions, and minutes_to_complete.'''
@@ -63,12 +63,12 @@ class TestRecipe:
 
             Recipe.query.delete()
             db.session.commit()
+            
+        with pytest.raises((IntegrityError, ValueError)):
+            recipe = Recipe(
+                title="Generic Ham",
+                instructions="idk lol")
 
-            '''must raise either a sqlalchemy.exc.IntegrityError with constraints or a custom validation ValueError'''
-            with pytest.raises( (IntegrityError, ValueError) ):
-                recipe = Recipe(
-                    title="Generic Ham",
-                    instructions="idk lol")
+            with pytest.raises(IntegrityError):
                 db.session.add(recipe)
                 db.session.commit()
-

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from flask import request, session, make_response
+from flask import request, session
 from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 
@@ -14,21 +14,29 @@ class Signup(Resource):
 
         request_json = request.get_json()
 
+        username = request_json.get('username')
+        password = request_json.get('password')
+    
+        if not username:
+            return {'errors': ['Username is required']}, 422
+        if not password:
+            return {'errors': ['Password is required']}, 422
+
         try:
             user = User(
-                username=request_json.get('username'),
+                username=username, 
                 image_url=request_json.get('image_url'),
                 bio=request_json.get('bio')
             )
 
-            user.password_hash = request_json.get('password')
+            user.password_hash = password  # Use the validated password variable
 
             db.session.add(user)
             db.session.commit()
 
             session['user_id'] = user.id
 
-            return make_response(user.to_dict()), 201
+            return user.to_dict(), 201  # Remove make_response wrapper
 
         except (IntegrityError, ValueError) as err:
             db.session.rollback()
@@ -39,7 +47,7 @@ class CheckSession(Resource):
     def get(self):
         user = User.query.filter(User.id == session.get('user_id')).first()
         if user:
-            return make_response(user.to_dict(), 200)
+            return user.to_dict(), 200  # Remove make_response wrapper
         else:        
             return {'error': '401 Unauthorized'}, 401 
 
@@ -48,13 +56,17 @@ class Login(Resource):
 
         request_json = request.get_json()
 
-        user = User.query.filter(User.username ==request_json.get('username')).first()
+        username = request_json.get('username')
+        password = request_json.get('password')
 
-        if user:
-            if user and user.authenticate(request_json.get['password']):
-
-                session['user_id'] = user.id
-                return make_response(user.to_dict()), 200
+        if not username or not password:
+            return {'error': '401 Unauthorized'}, 401
+    
+        user = User.query.filter(User.username == username).first()
+    
+        if user and user.authenticate(password):
+            session['user_id'] = user.id
+            return user.to_dict(), 200  # Remove make_response wrapper
 
         return {'error': '401 Unauthorized'}, 401
 
@@ -81,19 +93,18 @@ class RecipeIndex(Resource):
             return {'errors': ['Unauthorized']}, 401
 
         request_json = request.get_json()
-        user = User.query.get(user_id)
 
         try:
             recipe = Recipe(
                 title=request_json.get('title'),
                 instructions=request_json.get('instructions'),
                 minutes_to_complete=request_json.get('minutes_to_complete'),
-                user=user
+                user_id=user_id
             )
 
             db.session.add(recipe)
             db.session.commit()
-            return make_response(recipe.to_dict(), 201)
+            return recipe.to_dict(), 201  # Remove make_response wrapper
         except (IntegrityError, ValueError) as err:
             db.session.rollback()
             return {'errors': [str(err)]}, 422
